@@ -1,74 +1,132 @@
 ---
-- name: Konfiguration fuer windows rtlab host
+- name: Konfiguration fuer windows host
   hosts: all
   vars:
-    #ansible_user: user
-    #ansible_password: user
+    # ansible_user: user      # Set your username for windows here
+    # ansible_password: user  # Set your password for windows here
     ansible_connection: winrm
     ansible_winrm_server_cert_validation: ignore
+    become_method: runas
   tasks:
-
-    # - name: Install kicad
-    #   win_chocolatey:
-    #     name: kicad
-    #     state: present
-
-    - name: Install vscode
+    - name: Install multiple packages sequentially (latest)
       win_chocolatey:
-        name: vscode
-        state: present
-
-    # - name: Install arduino
-    #   win_chocolatey:
-    #     name: arduino
-    #     state: present
-
-    - name: Install git
-      win_chocolatey:
-        name: git
-        state: present
-
-    - name: Install inkscape
-      win_chocolatey:
-        name: inkscape
-        state: present
-
-    - name: Install freecad
-      win_chocolatey:
-        name: freecad
-        state: present
-
-    # - name: Install autodesk-fusion360
-    #   win_chocolatey:
-    #     name: autodesk-fusion360
-    #     state: present
-
-    # - name: Install gitkraken
-    #   win_chocolatey:
-    #     name: gitkraken
-    #     state: present
-
-    # - name: Install notepadplusplus
-    #   win_chocolatey:
-    #     name: notepadplusplus
-    #     state: latest
-
-    # - name: Install libreoffice-fresh
-    #   win_chocolatey:
-    #     name: libreoffice-fresh
-    #     state: latest
-
-    # - name: Install foxitreader
-    #   win_chocolatey:
-    #     name: foxitreader
-    #     state: present
-
-    # - name: Install firefox
-    #   win_chocolatey:
-    #     name: firefox
-    #     state: latest
-
-    - name: Install googlechrome
-      win_chocolatey:
-        name: googlechrome
+        name: '{{ item }}'
         state: latest
+      with_items:
+        # - autodesk-fusion360
+        # - git
+        - vscode
+        # - kicad
+        - inkscape
+        # - freecad
+        - 7zip
+        # - vlc
+        - putty
+        # - teamviewer
+        - pdf24
+        - arduino
+        - gitkraken
+        - notepadplusplus
+        - libreoffice-fresh
+        - foxitreader
+        - firefox
+
+    # - name: uninstall multiple packages
+    #   win_chocolatey:
+    #     name:
+    #     - putty
+    #     - inkscape
+    #     state: absent
+############################################################################
+## Change Registry 
+## Parts were copied or changed according to https://github.com/crombeen/ansible
+    - name: Registry configuration
+      become_user: '{{ ansible_user }}'
+      win_regedit:
+        path: '{{ item.path }}'
+        name: '{{ item.name }}'
+        data: '{{ item.data|default(None) }}'
+        type: '{{ item.type|default("dword") }}'
+        state: '{{ item.state|default("present") }}'
+      with_items:
+        # Show Hidden Files in Explorer
+        - path: HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced
+          name: Hidden
+          data: 1
+
+        # Show Hidden System Files in Explorer
+        # - path: HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced
+        #   name: ShowSuperHidden
+        #   data: 1
+
+        # Show File Extension in Explorer
+      
+        - path: HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced
+          name: HideFileExt
+          data: 0
+
+        # Disable Cortana (Windows 10 Anniversary+)
+        - path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search
+          name: AllowCortana
+          data: 0
+
+        # Do not add "-Shortcut" text to the name of newly created shortcuts
+        - path: HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer
+          name: link
+          data: hex:00,00,00,00
+          type: binary
+
+        # Do not show notifications/adverts (OneDrive & new features) in Windows Explorer
+        - path: HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced
+          name: ShowSyncProviderNotifications
+          data: 0
+
+        # Disable people button in taskbar
+        - path: HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced\People
+          name: PeopleBand
+          data: 0
+    
+##TODO: Extend Registry Entryies for Taskbar
+
+############################################################################
+## Disable default services
+## Parts were copied or changed according to https://github.com/crombeen/ansible
+    # - name: Disable default services
+    #   win_service:
+    #     name: '{{ item }}'
+    #     start_mode: disabled
+    #     state: stopped
+    #   with_items:
+    #   - diagnosticshub.standardcollector.service # Microsoft (R) Diagnostics Hub Standard Collector Service
+    #   - DiagTrack                                # Diagnostics Tracking Service
+    #   - lfsvc                                    # Geolocation Service
+    #   - WMPNetworkSvc                            # Windows Media Player Network Sharing Service
+    #   - XblAuthManager                           # Xbox Live Auth Manager
+    #   - XblGameSave                              # Xbox Live Game Save Service
+    #   - XboxNetApiSvc                            # Xbox Live Networking Service
+    #   tags: services
+
+
+####################### Add Kicad plugins ##################################
+    - name: Create directory structure for Kicad
+      win_file:
+        path: "APPDATA\\Roaming\\kicad\\scripting\\plugins"
+        state: directory
+
+    - name: win-git clone kicad_rt_export script
+      win_git:
+        repo: "https://github.com/RT-CUSTOMZ/kicad_rt_export.git"
+        dest: "AppData\\Roaming\\kicad\\scripting\\plugins\\kicad_rt_export"
+        branch: master
+        update: yes
+        accept_hostkey: yes
+
+    - name: win-git clone InteractiveHtmlBom
+      win_git:
+        repo: "https://github.com/openscopeproject/InteractiveHtmlBom.git"
+        dest: "AppData\\Roaming\\kicad\\scripting\\plugins\\InteractiveHtmlBom"
+        branch: master
+        update: yes
+        accept_hostkey: yes
+
+############################################################################
