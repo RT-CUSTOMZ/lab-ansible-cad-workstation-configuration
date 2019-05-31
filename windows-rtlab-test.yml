@@ -2,12 +2,28 @@
 - name: Konfiguration fuer windows host
   hosts: all
   vars:
-    # ansible_user: user      # Set your username for windows here
-    # ansible_password: user  # Set your password for windows here
+    ansible_user: test      # Set your username for windows here
+    ansible_password: test42  # Set your password for windows here
     ansible_connection: winrm
     ansible_winrm_server_cert_validation: ignore
     become_method: runas
   tasks:
+    - name: install Chocolatey
+      win_chocolatey:
+        name: chocolatey
+        state: downgrade
+        version: 0.10.13
+
+    - name: disable enhanced exit codes
+      win_chocolatey_feature:
+        name: useEnhancedExitCodes
+        state: disabled
+
+    - name: Install vscode
+      win_chocolatey:
+        name: vscode
+        state: latest
+
     - name: Install multiple packages sequentially (latest)
       win_chocolatey:
         name: '{{ item }}'
@@ -108,25 +124,25 @@
 
 
 ####################### Add Kicad plugins ##################################
-    - name: Create directory structure for Kicad
-      win_file:
-        path: "APPDATA\\Roaming\\kicad\\scripting\\plugins"
-        state: directory
+    # - name: Create directory structure for Kicad
+    #   win_file:
+    #     path: "APPDATA\\Roaming\\kicad\\scripting\\plugins"
+    #     state: directory
 
-    - name: win-git clone kicad_rt_export script
-      win_git:
-        repo: "https://github.com/RT-CUSTOMZ/kicad_rt_export.git"
-        dest: "AppData\\Roaming\\kicad\\scripting\\plugins\\kicad_rt_export"
-        branch: master
-        update: yes
-        accept_hostkey: yes
+    # - name: win-git clone kicad_rt_export script
+    #   win_git:
+    #     repo: "https://github.com/RT-CUSTOMZ/kicad_rt_export.git"
+    #     dest: "AppData\\Roaming\\kicad\\scripting\\plugins\\kicad_rt_export"
+    #     branch: master
+    #     update: yes
+    #     accept_hostkey: yes
 
-    - name: win-git clone InteractiveHtmlBom
-      win_git:
-        repo: "https://github.com/openscopeproject/InteractiveHtmlBom.git"
-        dest: "AppData\\Roaming\\kicad\\scripting\\plugins\\InteractiveHtmlBom"
-        branch: master
-        update: yes
-        accept_hostkey: yes
+    # - name: win-git clone InteractiveHtmlBom
+    #   win_git:
+    #     repo: "https://github.com/openscopeproject/InteractiveHtmlBom.git"
+    #     dest: "AppData\\Roaming\\kicad\\scripting\\plugins\\InteractiveHtmlBom"
+    #     branch: master
+    #     update: yes
+    #     accept_hostkey: yes
 
 ############################################################################
