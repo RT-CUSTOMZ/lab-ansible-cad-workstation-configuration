@@ -16,6 +16,8 @@ The ansible host has to be a Linux machine. For the case that only a Windows (10
 Afterwards install pywinrm:
 
 ``` bash
+## for debian and ubuntu under windows wsl
+sudo pip install pywinrm
 ## for debian and ubuntu
 sudo apt-get install python3-winrm
 ## for fedora
