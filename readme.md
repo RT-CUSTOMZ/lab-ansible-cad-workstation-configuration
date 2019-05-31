@@ -2,6 +2,12 @@
 
 This Ansible playbook is an example for automated software installation. It is used to configure my Workstation.
 
+## Install Ansible
+``` bash
+sudo apt-get -y install python-pip python-dev libffi-dev libssl-dev
+pip install ansible --user
+```
+
 ## Requirements for Ansible host
 The ansible host has to be a Linux machine. For the case that only a Windows (10!!!) Machine is availible, [install the Linux Subsystem](https://docs.microsoft.com/en-us/windows/wsl/install-win10) on the device.
 
@@ -13,7 +19,6 @@ sudo apt-get install python3-winrm
 ## for fedora
 sudo dnf install python3-winrm
 ```
-
 ## WinRM Setup
 > on windows host
 
