@@ -2,12 +2,13 @@
 
 This Ansible playbook is an example for automated software installation. It is used to configure my Workstation.
 
+Tested with Fedora(native) and Debian on Windows WSL!
 ## Install Ansible
 ``` bash
 sudo apt-get update
 sudo apt-get install software-properties-common
 sudo apt-get -y install python-pip python-dev libffi-dev libssl-dev
-pip install ansible --user
+sudo pip install ansible
 ```
 
 ## Requirements for Ansible host
